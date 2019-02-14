@@ -67,7 +67,6 @@ class NetworkEnvelope:
     def parse(cls, s, testnet=False):
         '''Takes a stream and creates a NetworkEnvelope'''
         # check the network magic
-        print(s)
         magic = s.read(4)
         if magic == b'':
             raise RuntimeError('Connection reset!')

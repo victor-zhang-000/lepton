@@ -3,7 +3,7 @@ import getpass
 from Crypto.Cipher import AES
 from io import BytesIO
 from logging import getLogger
-from mock import patch, Mock
+from mock import call, patch, Mock
 from os import unlink
 from os.path import exists, isfile
 from secrets import token_bytes
@@ -25,6 +25,7 @@ from helper import (
 )
 from network import (
     BLOCK_DATA_TYPE,
+    WITNESS_TX_DATA_TYPE,
     CFilterMessage,
     GetCFiltersMessage,
     GetDataMessage,
@@ -666,3 +667,9 @@ class WalletTest(TestCase):
         self.assertEqual(w.balance(), 12753130)
         self.assertEqual(w.spent(), 0)
         self.assertEqual(w.total_received(), 12753130)
+        tx_hex = '010000000001018c738903e2ca1d6344e4ffe864351081316b58209c39f5ee09f0f50e8bfeaf070000000000ffffffff0220a10700000000001600141c9edd6ba7dd3ae3655a86c50680587fd619e472f2f6ba00000000001600142f6e2131c37970398e275ad0e528a23d02bcd2ce0248304502210097f995778d1cc41d97be073c13217c69cf54345647b89516d83a054284fe80380220477f6cc1829b23053b8913be483536998f99e6047421faa4fe279ca4687f25f8012102221f70f0e3f9cb3e164a45e7994e6e83816c76dc122d0987e4559536b888530b00000000'
+        expected_tx = Tx.parse(BytesIO(bytes.fromhex(tx_hex)))
+        w.simple_send('tb1qrj0d66a8m5awxe26smzsdqzc0ltpnerjelrvpw', 500000)
+        data = NetworkEnvelope(expected_tx.command, expected_tx.serialize(), testnet=True).serialize()
+        self.assertEqual(mock_socket.return_value.sendall.mock_calls[-1], call(data))
+
